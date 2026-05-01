@@ -11,6 +11,8 @@ import { createHash, randomBytes } from 'crypto';
 import { normalizePhone, type LoginInput, type RegisterInput } from '@manicuba/shared';
 
 import { PrismaService } from '../common/prisma.service';
+import { AuditService } from '../common/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 interface TokenPair {
   accessToken: string;
@@ -24,7 +26,63 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly audit: AuditService,
+    private readonly notifs: NotificationsService,
   ) {}
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user) return;
+    const raw = randomBytes(32).toString('hex');
+    const tokenHash = this.hashToken(raw);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetTokenHash: tokenHash, passwordResetExpiresAt: expiresAt },
+    });
+    const base = this.config.get<string>('WEB_PUBLIC_URL') ?? 'http://localhost:3000';
+    const link = `${base}/reset-password?token=${raw}&email=${encodeURIComponent(user.email)}`;
+    await this.notifs.send({
+      tenantId: user.tenantId,
+      channel: 'EMAIL',
+      to: user.email,
+      subject: 'Restablecer contrasena - Manicuba',
+      body: `Solicitaste restablecer tu contrasena. Sigue este enlace (vence en 1 hora):\n\n${link}\n\nSi no fuiste tu, ignora este correo.`,
+    });
+    await this.audit.log({
+      tenantId: user.tenantId,
+      userId: user.id,
+      action: 'REQUEST_PASSWORD_RESET',
+      entity: 'User',
+      entityId: user.id,
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const tokenHash = this.hashToken(token);
+    const user = await this.prisma.user.findUnique({ where: { passwordResetTokenHash: tokenHash } });
+    if (!user || !user.passwordResetExpiresAt || user.passwordResetExpiresAt < new Date()) {
+      throw new BadRequestException('Token invalido o vencido');
+    }
+    const passwordHash = await argon2.hash(newPassword);
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash, passwordResetTokenHash: null, passwordResetExpiresAt: null },
+      }),
+      this.prisma.refreshToken.updateMany({
+        where: { userId: user.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+    await this.audit.log({
+      tenantId: user.tenantId,
+      userId: user.id,
+      action: 'RESET_PASSWORD',
+      entity: 'User',
+      entityId: user.id,
+    });
+  }
 
   async register(input: RegisterInput) {
     const slug = input.slug.toLowerCase();
@@ -83,6 +141,13 @@ export class AuthService {
     if (!tenant) throw new UnauthorizedException('Tenant no encontrado');
 
     const tokens = await this.issueTokens(user.id, tenant.id, user.role, user.email);
+    await this.audit.log({
+      tenantId: tenant.id,
+      userId: user.id,
+      action: 'LOGIN',
+      entity: 'User',
+      entityId: user.id,
+    });
     return {
       tokens,
       tenant: { id: tenant.id, slug: tenant.slug, businessName: tenant.businessName },

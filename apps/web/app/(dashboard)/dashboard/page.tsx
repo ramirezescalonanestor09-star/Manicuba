@@ -6,6 +6,73 @@ import { useEffect, useState } from 'react';
 import { api, SITE_URL } from '@/lib/api';
 import { loadSession } from '@/lib/auth';
 
+function AvailableNowCard() {
+  const [until, setUntil] = useState<string | null>(null);
+  const [note, setNote] = useState('');
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    api<{ availableNowUntil: string | null; availableNowNote: string | null }>('/tenant')
+      .then((t) => {
+        if (t.availableNowUntil && new Date(t.availableNowUntil) > new Date()) {
+          setActive(true);
+          setUntil(t.availableNowUntil);
+          setNote(t.availableNowNote ?? '');
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function activate(hours: number) {
+    const u = new Date(Date.now() + hours * 3600_000).toISOString();
+    await api('/tenant/available-now', { method: 'POST', json: { until: u, note } });
+    setActive(true);
+    setUntil(u);
+  }
+  async function deactivate() {
+    await api('/tenant/available-now', { method: 'POST', json: { until: null, note: '' } });
+    setActive(false);
+    setUntil(null);
+  }
+
+  return (
+    <section className="card">
+      <h2 className="text-lg font-semibold text-rose-700">Disponible ahora</h2>
+      <p className="mt-1 text-sm text-rose-900/70">
+        Activa esto cuando tengas un hueco hoy. Aparecera en tu pagina publica.
+      </p>
+      {active && until ? (
+        <div className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
+          Activo hasta {new Date(until).toLocaleString('es-CU')}
+          <button onClick={deactivate} className="btn-ghost ml-3 text-xs">
+            Desactivar
+          </button>
+        </div>
+      ) : (
+        <div className="mt-3 space-y-2">
+          <input
+            className="input"
+            placeholder="Nota corta (opcional)"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => activate(2)} className="btn-primary text-sm">
+              Por 2 horas
+            </button>
+            <button onClick={() => activate(4)} className="btn-ghost text-sm">
+              Por 4 horas
+            </button>
+            <button onClick={() => activate(8)} className="btn-ghost text-sm">
+              Hasta el final del dia
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 interface Stats {
   pendingRequests: number;
   upcomingAppointments: number;
@@ -82,6 +149,9 @@ export default function DashboardHome() {
           </a>
         </div>
       </section>
+
+      <AvailableNowCard />
+
 
       {stats && (
         <section className="grid gap-3 sm:grid-cols-3">

@@ -44,6 +44,8 @@ export class PublicController {
         bio: true,
         defaultCurrency: true,
         timezone: true,
+        availableNowUntil: true,
+        availableNowNote: true,
         services: {
           where: { active: true },
           select: {

@@ -57,8 +57,23 @@ export class NotificationsService {
           subject: input.subject ?? 'Manicuba',
           text: input.body,
         });
+      } else if (input.channel === 'SMS') {
+        const driver = (this.config.get<string>('SMS_DRIVER') ?? 'noop').toLowerCase();
+        if (driver === 'cubacel') {
+          const url = this.config.get<string>('SMS_CUBACEL_API_URL');
+          const key = this.config.get<string>('SMS_CUBACEL_API_KEY');
+          if (!url || !key) throw new Error('SMS_CUBACEL_API_URL/KEY no configurados');
+          const r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+            body: JSON.stringify({ to: input.to, text: input.body }),
+          });
+          if (!r.ok) throw new Error(`Cubacel error ${r.status}`);
+        } else {
+          this.logger.log(`SMS noop → ${input.to}: ${input.body}`);
+        }
       } else {
-        // WHATSAPP, TELEGRAM y SMS: por ahora se registran y se entregan via deep link en frontend.
+        // WHATSAPP, TELEGRAM, INAPP: deep links / ya en BD.
         this.logger.log(`Notification ${input.channel} → ${input.to} (logged)`);
       }
       await this.prisma.notification.update({

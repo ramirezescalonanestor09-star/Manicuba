@@ -17,6 +17,9 @@ import { MessagingModule } from './messaging/messaging.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { GalleryModule } from './gallery/gallery.module';
 import { PublicModule } from './public/public.module';
+import { JobsModule } from './jobs/jobs.module';
+import { CashModule } from './cash/cash.module';
+import { TemplatesModule } from './templates/templates.module';
 
 @Module({
   imports: [
@@ -26,17 +29,20 @@ import { PublicModule } from './public/public.module';
       { name: 'public', ttl: 60_000, limit: 30 },
     ]),
     PrismaModule,
+    JobsModule,
+    NotificationsModule,
+    UploadsModule,
+    AvailabilityModule,
     AuthModule,
     TenantsModule,
     ClientsModule,
     ServicesModule,
     RequestsModule,
     AppointmentsModule,
-    AvailabilityModule,
-    UploadsModule,
     MessagingModule,
-    NotificationsModule,
     GalleryModule,
+    CashModule,
+    TemplatesModule,
     PublicModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

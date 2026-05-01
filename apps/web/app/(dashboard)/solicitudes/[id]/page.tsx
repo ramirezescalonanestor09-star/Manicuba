@@ -46,6 +46,9 @@ export default function RequestDetail() {
   const [message, setMessage] = useState('');
   const [validUntil, setValidUntil] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [templates, setTemplates] = useState<Array<{ id: string; name: string; body: string }>>(
+    [],
+  );
 
   const session = typeof window !== 'undefined' ? loadSession() : null;
 
@@ -68,6 +71,7 @@ export default function RequestDetail() {
 
   useEffect(() => {
     refresh();
+    api<typeof templates>('/quote-templates').then(setTemplates).catch(() => {});
   }, [params.id]);
 
   async function submitQuote(e: React.FormEvent) {
@@ -205,6 +209,24 @@ export default function RequestDetail() {
           </div>
           <div>
             <label className="label">Mensaje (opcional)</label>
+            {templates.length > 0 && (
+              <select
+                className="input mb-2"
+                onChange={(e) => {
+                  const tpl = templates.find((t) => t.id === e.target.value);
+                  if (tpl) setMessage(tpl.body);
+                  e.target.value = '';
+                }}
+                defaultValue=""
+              >
+                <option value="">Usar plantilla...</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            )}
             <textarea
               className="input min-h-[80px]"
               value={message}

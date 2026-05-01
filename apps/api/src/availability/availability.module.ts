@@ -1,5 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { AvailabilityController } from './availability.controller';
+import { AvailabilityService } from './availability.service';
 
-@Module({ controllers: [AvailabilityController] })
+@Global()
+@Module({
+  controllers: [AvailabilityController],
+  providers: [AvailabilityService],
+  exports: [AvailabilityService],
+})
 export class AvailabilityModule {}

@@ -95,7 +95,15 @@ export default function ClientasPage() {
                 {c.email ? ` · ${c.email}` : ''}
               </p>
             </div>
-            <span className="rounded-full bg-rose-100 px-3 py-1 text-xs text-rose-700">
+            <span
+              className={
+                'rounded-full px-3 py-1 text-xs ' +
+                (c.loyaltyPoints >= 10
+                  ? 'bg-emerald-200 text-emerald-900'
+                  : 'bg-rose-100 text-rose-700')
+              }
+            >
+              {c.loyaltyPoints >= 10 ? '★ ' : ''}
               {c.loyaltyPoints} pts
             </span>
           </div>

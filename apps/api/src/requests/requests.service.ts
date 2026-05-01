@@ -10,8 +10,11 @@ import {
 } from '@manicuba/shared';
 
 import { PrismaService } from '../common/prisma.service';
+import { AuditService } from '../common/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ImagePipeline } from '../uploads/image.pipeline';
+import { AvailabilityService } from '../availability/availability.service';
+import { RemindersService } from '../jobs/reminders.service';
 
 @Injectable()
 export class RequestsService {
@@ -20,6 +23,9 @@ export class RequestsService {
     private readonly notifs: NotificationsService,
     private readonly imagePipeline: ImagePipeline,
     private readonly config: ConfigService,
+    private readonly availability: AvailabilityService,
+    private readonly reminders: RemindersService,
+    private readonly audit: AuditService,
   ) {}
 
   async createPublic(
@@ -184,6 +190,13 @@ export class RequestsService {
       where: { id: request.id },
       data: { status: 'QUOTED' },
     });
+    await this.audit.log({
+      tenantId,
+      action: 'CREATE_QUOTE',
+      entity: 'Quote',
+      entityId: quote.id,
+      metadata: { requestId: request.id, amount: input.amount, currency: input.currency } as never,
+    });
 
     const message = buildQuoteMessage({
       clientName: request.client.fullName,
@@ -226,6 +239,8 @@ export class RequestsService {
     const start = request.requestedSlot ?? new Date(Date.now() + 24 * 3600 * 1000);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
 
+    await this.availability.assertSlotFree(request.tenantId, start, end);
+
     const [, , appointment] = await this.prisma.$transaction([
       this.prisma.quote.update({
         where: { requestId: request.id },
@@ -249,6 +264,21 @@ export class RequestsService {
         },
       }),
     ]);
+
+    const jobId = await this.reminders.scheduleAppointment(appointment.id, start);
+    if (jobId) {
+      await this.prisma.appointment.update({
+        where: { id: appointment.id },
+        data: { reminderJobId: jobId },
+      });
+    }
+    await this.audit.log({
+      tenantId: request.tenantId,
+      action: 'ACCEPT_QUOTE',
+      entity: 'ServiceRequest',
+      entityId: request.id,
+      metadata: { appointmentId: appointment.id } as never,
+    });
 
     return { status: 'ACCEPTED', appointmentId: appointment.id };
   }

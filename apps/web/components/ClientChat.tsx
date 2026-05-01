@@ -1,13 +1,21 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { Socket } from 'socket.io-client';
 import { publicApi } from '@/lib/api';
+import { connectSocket } from '@/lib/socket';
+
+interface Attachment {
+  id: string;
+  storageKey: string;
+}
 
 interface Message {
   id: string;
   fromType: 'CLIENT' | 'MANICURI' | 'SYSTEM';
   body: string;
   createdAt: string;
+  attachments?: Attachment[];
 }
 
 interface Thread {
@@ -20,6 +28,7 @@ export function ClientChat({ threadToken }: { threadToken: string }) {
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   async function load() {
     try {
@@ -32,8 +41,21 @@ export function ClientChat({ threadToken }: { threadToken: string }) {
 
   useEffect(() => {
     load();
-    const id = setInterval(load, 10_000);
-    return () => clearInterval(id);
+    const socket = connectSocket({ publicToken: threadToken });
+    socketRef.current = socket;
+    socket.on('new-message', (msg: Message) => {
+      setThread((t) =>
+        t && !t.messages.find((m) => m.id === msg.id)
+          ? { ...t, messages: [...t.messages, msg] }
+          : t,
+      );
+    });
+    socket.on('disconnect', () => {});
+    const fallback = setInterval(load, 30_000);
+    return () => {
+      clearInterval(fallback);
+      socket.disconnect();
+    };
   }, [threadToken]);
 
   useEffect(() => {
@@ -44,18 +66,25 @@ export function ClientChat({ threadToken }: { threadToken: string }) {
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
-    if (!body.trim()) return;
+    const text = body.trim();
+    if (!text) return;
     setSending(true);
-    try {
-      await publicApi(`/public/threads/${threadToken}/messages`, {
-        method: 'POST',
-        json: { body: body.trim() },
-      });
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('send-message', { body: text });
       setBody('');
-      load();
-    } finally {
-      setSending(false);
+    } else {
+      try {
+        await publicApi(`/public/threads/${threadToken}/messages`, {
+          method: 'POST',
+          json: { body: text },
+        });
+        setBody('');
+        load();
+      } catch {
+        /* ignore */
+      }
     }
+    setSending(false);
   }
 
   return (
@@ -76,7 +105,20 @@ export function ClientChat({ threadToken }: { threadToken: string }) {
                 : 'self-start max-w-[80%] rounded-2xl bg-white px-3 py-2 text-sm text-rose-900 shadow-sm'
             }
           >
-            {m.body}
+            {m.body && <p>{m.body}</p>}
+            {m.attachments && m.attachments.length > 0 && (
+              <div className="mt-2 grid grid-cols-2 gap-1">
+                {m.attachments.map((a) => (
+                  <a key={a.id} href={`/files/${a.storageKey}`} target="_blank" rel="noreferrer">
+                    <img
+                      src={`/files/${a.storageKey}`}
+                      alt=""
+                      className="h-24 w-full rounded-lg object-cover"
+                    />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>

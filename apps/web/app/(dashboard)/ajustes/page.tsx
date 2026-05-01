@@ -147,6 +147,38 @@ export default function AjustesPage() {
       <button className="btn-primary" onClick={save} disabled={saving}>
         {saving ? 'Guardando...' : 'Guardar'}
       </button>
+
+      <BackupCard />
     </div>
+  );
+}
+
+function BackupCard() {
+  async function download() {
+    const session = (await import('@/lib/auth')).loadSession();
+    const apiUrl = (await import('@/lib/api')).API_URL;
+    const res = await fetch(`${apiUrl}/api/tenant/backup`, {
+      headers: { Authorization: `Bearer ${session?.accessToken}` },
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `manicuba-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <section className="card">
+      <h2 className="text-lg font-semibold text-rose-700">Respaldo</h2>
+      <p className="mt-2 text-sm text-rose-900/70">
+        Descarga un JSON con todos tus datos (clientas, servicios, citas, gastos, plantillas,
+        galeria). Util para guardar copia local.
+      </p>
+      <button onClick={download} className="btn-primary mt-3">
+        Descargar respaldo
+      </button>
+    </section>
   );
 }

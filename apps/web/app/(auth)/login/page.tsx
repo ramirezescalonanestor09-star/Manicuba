@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { api } from '@/lib/api';
@@ -9,10 +9,12 @@ import { saveSession } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
+  const params = useSearchParams();
   const [email, setEmail] = useState('demo@manicuba.app');
   const [password, setPassword] = useState('manicuba123');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const justReset = params.get('reset') === '1';
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,6 +39,12 @@ export default function LoginPage() {
     <main className="mx-auto max-w-md px-6 py-16">
       <h1 className="text-3xl font-bold text-rose-700">Entrar</h1>
       <p className="mt-2 text-rose-900/70">Accede a tu panel de manicuri.</p>
+
+      {justReset && (
+        <p className="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800">
+          Contrasena actualizada. Ya puedes entrar.
+        </p>
+      )}
 
       <form onSubmit={onSubmit} className="card mt-8 space-y-4">
         <div>
@@ -67,6 +75,11 @@ export default function LoginPage() {
           No tienes cuenta?{' '}
           <Link href="/registro" className="font-semibold text-rose-600">
             Crear cuenta
+          </Link>
+        </p>
+        <p className="text-sm text-rose-900/70">
+          <Link href="/olvide-password" className="text-rose-600">
+            Olvide mi contrasena
           </Link>
         </p>
       </form>

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { z } from 'zod';
 import {
   loginSchema,
   refreshSchema,
@@ -7,6 +8,12 @@ import {
   type RefreshInput,
   type RegisterInput,
 } from '@manicuba/shared';
+
+const forgotPasswordSchema = z.object({ email: z.string().email() });
+const resetPasswordSchema = z.object({
+  token: z.string().min(10),
+  password: z.string().min(8).max(128),
+});
 
 import { ZodValidationPipe } from '../common/zod.pipe';
 import { CurrentUser, type AuthUser } from '../common/current-user.decorator';
@@ -34,6 +41,23 @@ export class AuthController {
   @Post('refresh')
   refresh(@Body(new ZodValidationPipe(refreshSchema)) body: RefreshInput) {
     return this.auth.refresh(body.refreshToken);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(204)
+  async forgot(
+    @Body(new ZodValidationPipe(forgotPasswordSchema)) body: { email: string },
+  ): Promise<void> {
+    await this.auth.requestPasswordReset(body.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(204)
+  async reset(
+    @Body(new ZodValidationPipe(resetPasswordSchema))
+    body: { token: string; password: string },
+  ): Promise<void> {
+    await this.auth.resetPassword(body.token, body.password);
   }
 
   @UseGuards(JwtAuthGuard)

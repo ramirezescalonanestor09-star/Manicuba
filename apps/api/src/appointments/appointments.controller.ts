@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { z } from 'zod';
 import {
   appointmentCreateSchema,
   appointmentUpdateSchema,
@@ -19,12 +20,28 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser, type AuthUser } from '../common/current-user.decorator';
 import { PrismaService } from '../common/prisma.service';
+import { AuditService } from '../common/audit.service';
 import { ZodValidationPipe } from '../common/zod.pipe';
+import { AvailabilityService } from '../availability/availability.service';
+import { RemindersService } from '../jobs/reminders.service';
+
+const paymentSchema = z.object({
+  amountPaid: z.number().nonnegative(),
+  tipAmount: z.number().nonnegative().optional(),
+  currency: z.enum(['CUP', 'MLC', 'USD']),
+  paymentMethod: z.enum(['CASH', 'TRANSFER', 'CARD', 'MLC_CARD', 'ZELLE', 'OTHER']),
+  paidAt: z.string().datetime().optional(),
+});
 
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
 export class AppointmentsController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly availability: AvailabilityService,
+    private readonly reminders: RemindersService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Get()
   list(
@@ -45,7 +62,14 @@ export class AppointmentsController {
           : {}),
       },
       include: {
-        client: { select: { id: true, fullName: true, phoneE164: true } },
+        client: {
+          select: {
+            id: true,
+            fullName: true,
+            phoneE164: true,
+            loyaltyPoints: true,
+          },
+        },
         service: { select: { id: true, name: true } },
       },
       orderBy: { startAt: 'asc' },
@@ -61,19 +85,37 @@ export class AppointmentsController {
       where: { id: body.clientId, tenantId: user.tenantId },
     });
     if (!client) throw new NotFoundException('Clienta no encontrada');
-    return this.prisma.appointment.create({
+    const start = new Date(body.startAt);
+    const end = new Date(body.endAt);
+    await this.availability.assertSlotFree(user.tenantId, start, end);
+    const created = await this.prisma.appointment.create({
       data: {
         tenantId: user.tenantId,
         clientId: body.clientId,
         serviceId: body.serviceId,
         requestId: body.requestId,
-        startAt: new Date(body.startAt),
-        endAt: new Date(body.endAt),
+        startAt: start,
+        endAt: end,
         priceFinal: body.priceFinal,
         currency: body.currency,
         notes: body.notes,
       },
     });
+    const jobId = await this.reminders.scheduleAppointment(created.id, start);
+    if (jobId) {
+      await this.prisma.appointment.update({
+        where: { id: created.id },
+        data: { reminderJobId: jobId },
+      });
+    }
+    await this.audit.log({
+      tenantId: user.tenantId,
+      userId: user.userId,
+      action: 'CREATE',
+      entity: 'Appointment',
+      entityId: created.id,
+    });
+    return created;
   }
 
   @Patch(':id')
@@ -86,7 +128,12 @@ export class AppointmentsController {
       where: { id, tenantId: user.tenantId },
     });
     if (!owned) throw new NotFoundException();
-    return this.prisma.appointment.update({
+    if (body.startAt || body.endAt) {
+      const start = new Date(body.startAt ?? owned.startAt);
+      const end = new Date(body.endAt ?? owned.endAt);
+      await this.availability.assertSlotFree(user.tenantId, start, end, id);
+    }
+    const updated = await this.prisma.appointment.update({
       where: { id },
       data: {
         startAt: body.startAt ? new Date(body.startAt) : undefined,
@@ -97,5 +144,66 @@ export class AppointmentsController {
         notes: body.notes,
       },
     });
+    if (
+      updated.status === 'CANCELLED' ||
+      (body.startAt && new Date(body.startAt).getTime() !== owned.startAt.getTime())
+    ) {
+      await this.reminders.cancelJob(owned.reminderJobId);
+      if (updated.status !== 'CANCELLED') {
+        const newJob = await this.reminders.scheduleAppointment(updated.id, updated.startAt);
+        if (newJob) {
+          await this.prisma.appointment.update({
+            where: { id: updated.id },
+            data: { reminderJobId: newJob },
+          });
+        }
+      }
+    }
+    await this.audit.log({
+      tenantId: user.tenantId,
+      userId: user.userId,
+      action: 'UPDATE',
+      entity: 'Appointment',
+      entityId: id,
+      metadata: body as never,
+    });
+    return updated;
+  }
+
+  @Patch(':id/payment')
+  async payment(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(paymentSchema)) body: z.infer<typeof paymentSchema>,
+  ) {
+    const owned = await this.prisma.appointment.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+    if (!owned) throw new NotFoundException();
+    const updated = await this.prisma.appointment.update({
+      where: { id },
+      data: {
+        amountPaid: body.amountPaid,
+        tipAmount: body.tipAmount,
+        currency: body.currency,
+        paymentMethod: body.paymentMethod,
+        paidAt: body.paidAt ? new Date(body.paidAt) : new Date(),
+        status: 'COMPLETED',
+      },
+      include: { client: true, tenant: true },
+    });
+    await this.prisma.client.update({
+      where: { id: updated.clientId },
+      data: { loyaltyPoints: { increment: 1 } },
+    });
+    await this.audit.log({
+      tenantId: user.tenantId,
+      userId: user.userId,
+      action: 'PAY',
+      entity: 'Appointment',
+      entityId: id,
+      metadata: body as never,
+    });
+    return updated;
   }
 }

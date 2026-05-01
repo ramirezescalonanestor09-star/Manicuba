@@ -7,6 +7,7 @@ export * from './schemas/client';
 export * from './schemas/service';
 export * from './schemas/request';
 export * from './schemas/quote';
+export * from './schemas/quote-template';
 export * from './schemas/appointment';
 export * from './schemas/availability';
 export * from './schemas/message';

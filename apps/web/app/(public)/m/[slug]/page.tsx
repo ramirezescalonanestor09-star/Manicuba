@@ -9,6 +9,8 @@ interface TenantPublic {
   ownerName: string;
   bio: string | null;
   defaultCurrency: 'CUP' | 'MLC' | 'USD';
+  availableNowUntil: string | null;
+  availableNowNote: string | null;
   services: Array<{
     id: string;
     name: string;
@@ -37,12 +39,22 @@ export default async function PublicTenantPage({
   const tenant = await getTenant(slug);
   if (!tenant) notFound();
 
+  const now = new Date();
+  const isAvailableNow =
+    tenant.availableNowUntil && new Date(tenant.availableNowUntil) > now;
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <header className="text-center">
         <h1 className="text-4xl font-bold text-rose-700">{tenant.businessName}</h1>
         <p className="mt-2 text-rose-900/80">por {tenant.ownerName}</p>
         {tenant.bio && <p className="mt-4 text-rose-900/70">{tenant.bio}</p>}
+        {isAvailableNow && (
+          <div className="mx-auto mt-4 max-w-md rounded-2xl bg-emerald-100 px-4 py-3 text-sm text-emerald-900">
+            <strong>Disponible ahora</strong>
+            {tenant.availableNowNote ? <span> · {tenant.availableNowNote}</span> : null}
+          </div>
+        )}
         <Link
           className="btn-primary mt-6 inline-flex"
           href={`/m/${tenant.slug}/agendar`}

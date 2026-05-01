@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser, type AuthUser } from '../common/current-user.decorator';
@@ -28,5 +39,21 @@ export class MessagingController {
     @Body(new ZodValidationPipe(messageCreateSchema)) body: MessageCreateInput,
   ) {
     return this.messaging.postFromManicuri(user.tenantId, id, body.body);
+  }
+
+  @Post(':id/messages/attachments')
+  @UseInterceptors(
+    FilesInterceptor('images', 5, { limits: { fileSize: 8 * 1024 * 1024 } }),
+  )
+  postWithAttachments(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('body') body: string,
+  ) {
+    if (!body && (!files || files.length === 0)) {
+      throw new BadRequestException('Mensaje o adjunto requerido');
+    }
+    return this.messaging.postFromManicuri(user.tenantId, id, body ?? '', files ?? []);
   }
 }

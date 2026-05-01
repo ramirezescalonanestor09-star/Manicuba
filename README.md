@@ -68,15 +68,25 @@ Credenciales del tenant demo creado por el seed:
 
 ## Funcionalidades destacadas
 
-- **Multi-tenant** por `tenantId` con guard global JWT.
+- **Multi-tenant** por `tenantId` con guard global JWT y auditoria de mutaciones criticas.
 - **Multi-moneda** CUP, MLC y USD con formato es-CU.
-- **Subida de imagenes** optimizada con Sharp (webp + redimension a 1600 max).
-- **Chat in-app** entre clienta (sin cuenta) y manicuri vía publicToken del thread.
+- **Subida de imagenes** optimizada con Sharp; storage local **o** S3/R2 (`STORAGE_DRIVER`).
+- **Chat in-app en tiempo real** via WebSocket (Socket.IO) con fallback a polling. Soporta
+  imagenes adjuntas desde el lado de la manicuri.
+- **Validacion de horarios**: bloquea citas solapadas y respeta las ventanas / excepciones
+  configuradas por la manicuri.
+- **Recordatorios automaticos** 24h antes (BullMQ + Redis), cancelables al reagendar.
+- **Caja**: registra pago + propina + metodo por cita; reporte de ingresos, gastos y
+  ganancia neta por moneda.
+- **Plantillas de cotizacion** reutilizables, seleccionables al armar el mensaje.
+- **Modo "Disponible ahora"** con expiracion automatica, visible en la pagina publica.
+- **Backup exportable** en JSON (clientas, servicios, citas, gastos, plantillas, galeria).
+- **Recuperacion de contrasena** via correo (token de 1 hora, hash SHA-256 en BD).
+- **PWA con service worker**: cache del shell + cache-first de imagenes para zonas con
+  conexion intermitente.
+- **Adapter SMS** pluggable (`SMS_DRIVER=cubacel` listo para conectar API real).
+- **Sistema de fidelizacion** con incremento automatico al cobrar.
 - **Portafolio publico** con galeria.
-- **Plantillas de servicios** con duracion y precios por moneda.
-- **Disponibilidad** con ventanas semanales + excepciones.
-- **PWA** lista para instalar en moviles cubanos con conexion lenta.
-- **Notificaciones** por correo (SMTP) con registro multi-canal pluggable (SMS/WhatsApp).
 - **Rate-limit** y captcha-friendly en endpoints publicos.
 
 ## Comandos utiles

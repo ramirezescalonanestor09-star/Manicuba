@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Post, Patch, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -36,5 +36,57 @@ export class TenantsController {
     @Body(new ZodValidationPipe(tenantUpdateSchema)) body: TenantUpdate,
   ) {
     return this.prisma.tenant.update({ where: { id: user.tenantId }, data: body });
+  }
+
+  @Post('available-now')
+  async availableNow(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(
+      z.object({
+        until: z.string().datetime().nullable(),
+        note: z.string().max(160).optional(),
+      }),
+    ))
+    body: { until: string | null; note?: string },
+  ) {
+    return this.prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: {
+        availableNowUntil: body.until ? new Date(body.until) : null,
+        availableNowNote: body.note ?? null,
+      },
+    });
+  }
+
+  @Get('backup')
+  @Header('Content-Type', 'application/json')
+  @Header('Content-Disposition', 'attachment; filename="manicuba-backup.json"')
+  async backup(@CurrentUser() user: AuthUser) {
+    const where = { tenantId: user.tenantId };
+    const [tenant, clients, services, requests, appointments, expenses, templates, gallery] =
+      await Promise.all([
+        this.prisma.tenant.findUnique({ where: { id: user.tenantId } }),
+        this.prisma.client.findMany({ where }),
+        this.prisma.service.findMany({ where }),
+        this.prisma.serviceRequest.findMany({
+          where,
+          include: { quote: true, images: true },
+        }),
+        this.prisma.appointment.findMany({ where }),
+        this.prisma.expense.findMany({ where }),
+        this.prisma.quoteTemplate.findMany({ where }),
+        this.prisma.galleryItem.findMany({ where }),
+      ]);
+    return {
+      exportedAt: new Date().toISOString(),
+      tenant,
+      clients,
+      services,
+      requests,
+      appointments,
+      expenses,
+      quoteTemplates: templates,
+      gallery,
+    };
   }
 }
