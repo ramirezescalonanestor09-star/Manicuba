@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: manicuba-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: manicuba
+      POSTGRES_PASSWORD: manicuba
+      POSTGRES_DB: manicuba
+    ports:
+      - "5432:5432"
+    volumes:
+      - manicuba_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U manicuba"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: manicuba-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - manicuba_redis_data:/data
+
+volumes:
+  manicuba_pg_data:
+  manicuba_redis_data:
