@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { api } from '@/lib/api';
+import { CardSkeleton, EmptyState } from '@/components/UI';
 
 interface Item {
   id: string;
@@ -18,11 +19,22 @@ interface Item {
 const STATUSES = ['NEW', 'REVIEWING', 'QUOTED', 'ACCEPTED', 'REJECTED', 'EXPIRED'];
 
 export default function SolicitudesList() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<Item[] | null>(null);
   const [filter, setFilter] = useState<string>('');
 
   useEffect(() => {
-    api<Item[]>(`/requests${filter ? `?status=${filter}` : ''}`).then(setItems).catch(() => {});
+    let cancelled = false;
+    setItems(null);
+    api<Item[]>(`/requests${filter ? `?status=${filter}` : ''}`)
+      .then((d) => {
+        if (!cancelled) setItems(d);
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [filter]);
 
   return (
@@ -44,8 +56,14 @@ export default function SolicitudesList() {
       </header>
 
       <div className="grid gap-3">
-        {items.length === 0 && <p className="text-rose-900/60">No hay solicitudes.</p>}
-        {items.map((r) => (
+        {items === null && <CardSkeleton rows={4} />}
+        {items && items.length === 0 && (
+          <EmptyState
+            title="Aun no hay solicitudes"
+            description="Comparte tu enlace publico para que tus clientas pidan cotizaciones."
+          />
+        )}
+        {items?.map((r) => (
           <Link
             key={r.id}
             href={`/solicitudes/${r.id}`}

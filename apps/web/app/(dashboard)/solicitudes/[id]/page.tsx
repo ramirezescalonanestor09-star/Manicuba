@@ -13,6 +13,8 @@ import {
 
 import { api, SITE_URL } from '@/lib/api';
 import { loadSession } from '@/lib/auth';
+import { useToast } from '@/components/Toast';
+import { Skeleton } from '@/components/UI';
 
 interface RequestFull {
   id: string;
@@ -51,6 +53,7 @@ export default function RequestDetail() {
   );
 
   const session = typeof window !== 'undefined' ? loadSession() : null;
+  const toast = useToast();
 
   async function refresh() {
     try {
@@ -89,8 +92,11 @@ export default function RequestDetail() {
         },
       });
       await refresh();
+      toast.success('Cotizacion guardada');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error');
+      const msg = err instanceof Error ? err.message : 'Error';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -98,12 +104,24 @@ export default function RequestDetail() {
 
   async function setStatus(status: string) {
     if (!data) return;
-    await api(`/requests/${data.id}/status`, { method: 'PATCH', json: { status } });
-    refresh();
+    try {
+      await api(`/requests/${data.id}/status`, { method: 'PATCH', json: { status } });
+      await refresh();
+      toast.success('Estado actualizado');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error');
+    }
   }
 
-  if (error) return <p className="text-red-600">{error}</p>;
-  if (!data) return <p className="text-rose-700">Cargando...</p>;
+  if (error && !data) return <p className="text-red-600">{error}</p>;
+  if (!data)
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-1/2" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
 
   const publicUrl = `${SITE_URL}/r/${data.publicToken}`;
   const shareMessage =

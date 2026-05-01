@@ -195,7 +195,7 @@ export class RequestsService {
       action: 'CREATE_QUOTE',
       entity: 'Quote',
       entityId: quote.id,
-      metadata: { requestId: request.id, amount: input.amount, currency: input.currency } as never,
+      metadata: { requestId: request.id, amount: input.amount, currency: input.currency },
     });
 
     const message = buildQuoteMessage({
@@ -277,7 +277,7 @@ export class RequestsService {
       action: 'ACCEPT_QUOTE',
       entity: 'ServiceRequest',
       entityId: request.id,
-      metadata: { appointmentId: appointment.id } as never,
+      metadata: { appointmentId: appointment.id },
     });
 
     return { status: 'ACCEPTED', appointmentId: appointment.id };

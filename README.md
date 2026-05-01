@@ -110,6 +110,27 @@ pnpm --filter @manicuba/api prisma:migrate
 6. Abrir `/r/<token>` en otra ventana, aceptar la cotizacion. La cita aparece en *Agenda*.
 7. Probar el chat in-app desde ambos lados (clienta y manicuri).
 
+## Endurecimiento de produccion
+
+- **Helmet** + **compression** activados.
+- **CORS** controlado por `CORS_ALLOWED_ORIGINS` (separado por coma; `*` solo en dev).
+- **Filtro global de excepciones** mapea Prisma (P2002 conflict, P2025 not found) y
+  `HttpException` a un cuerpo JSON consistente: `{ statusCode, message, details? }`.
+- **Health check** publico en `GET /api/health` con verificacion de DB.
+- **Shutdown hooks** habilitados para cerrar Prisma/BullMQ/sockets de forma limpia.
+- **Path traversal** en storage local resuelto con `path.resolve` + verificacion de
+  prefijo.
+- **Refresco automatico de access token** en el cliente web con cola single-flight; al
+  fallar el refresh redirige a `/login` solo si la ruta lo requiere.
+
+## Verificacion
+
+```bash
+pnpm --filter @manicuba/shared test          # tests unitarios (phone, currency, share-links)
+pnpm --filter @manicuba/api test              # AvailabilityService.assertSlotFree (jest)
+curl http://localhost:4000/api/health         # health check
+```
+
 ## Roadmap
 
 - App movil nativa (Expo) consumiendo la misma API.

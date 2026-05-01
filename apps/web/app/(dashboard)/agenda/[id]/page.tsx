@@ -33,17 +33,14 @@ export default function AppointmentDetail() {
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
-    const r = await api<Appt[]>(`/appointments`);
-    const found = r.find((x) => x.id === params.id) ?? null;
+    const found = await api<Appt>(`/appointments/${params.id}`);
     setData(found);
-    if (found) {
-      setPay({
-        amountPaid: found.amountPaid?.toString() ?? found.priceFinal?.toString() ?? '',
-        tipAmount: found.tipAmount?.toString() ?? '',
-        currency: (found.currency as any) ?? 'CUP',
-        paymentMethod: found.paymentMethod ?? 'CASH',
-      });
-    }
+    setPay({
+      amountPaid: found.amountPaid?.toString() ?? found.priceFinal?.toString() ?? '',
+      tipAmount: found.tipAmount?.toString() ?? '',
+      currency: (found.currency as 'CUP' | 'MLC' | 'USD') ?? 'CUP',
+      paymentMethod: found.paymentMethod ?? 'CASH',
+    });
   }
   useEffect(() => {
     load().catch(() => {});

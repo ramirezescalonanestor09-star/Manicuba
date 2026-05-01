@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { RegisterSW } from '@/components/RegisterSW';
+import { ToastProvider } from '@/components/Toast';
 
 export const metadata: Metadata = {
   title: 'Manicuba',
@@ -16,8 +17,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body>
-        <RegisterSW />
-        {children}
+        <ToastProvider>
+          <RegisterSW />
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

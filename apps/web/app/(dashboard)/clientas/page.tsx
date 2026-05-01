@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { CardSkeleton, EmptyState } from '@/components/UI';
+import { useToast } from '@/components/Toast';
 
 interface Client {
   id: string;
@@ -12,16 +14,23 @@ interface Client {
 }
 
 export default function ClientasPage() {
-  const [items, setItems] = useState<Client[]>([]);
+  const [items, setItems] = useState<Client[] | null>(null);
   const [search, setSearch] = useState('');
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ fullName: '', phone: '', email: '', notesPrivate: '' });
+  const toast = useToast();
 
   async function load() {
-    const data = await api<Client[]>(
-      `/clients${search ? `?search=${encodeURIComponent(search)}` : ''}`,
-    );
-    setItems(data);
+    setItems(null);
+    try {
+      const data = await api<Client[]>(
+        `/clients${search ? `?search=${encodeURIComponent(search)}` : ''}`,
+      );
+      setItems(data);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error');
+      setItems([]);
+    }
   }
 
   useEffect(() => {
@@ -30,10 +39,15 @@ export default function ClientasPage() {
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
-    await api('/clients', { method: 'POST', json: form });
-    setForm({ fullName: '', phone: '', email: '', notesPrivate: '' });
-    setCreating(false);
-    load();
+    try {
+      await api('/clients', { method: 'POST', json: form });
+      setForm({ fullName: '', phone: '', email: '', notesPrivate: '' });
+      setCreating(false);
+      toast.success('Clienta creada');
+      load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error');
+    }
   }
 
   return (
@@ -85,8 +99,14 @@ export default function ClientasPage() {
       />
 
       <div className="grid gap-2">
-        {items.length === 0 && <p className="text-rose-900/60">Aun no hay clientas.</p>}
-        {items.map((c) => (
+        {items === null && <CardSkeleton rows={3} />}
+        {items && items.length === 0 && (
+          <EmptyState
+            title="Sin clientas"
+            description="Cuando una clienta llene tu formulario publico aparecera aqui."
+          />
+        )}
+        {items?.map((c) => (
           <div key={c.id} className="card flex items-center justify-between">
             <div>
               <p className="font-semibold text-rose-800">{c.fullName}</p>

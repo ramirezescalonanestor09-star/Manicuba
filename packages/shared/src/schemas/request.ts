@@ -8,7 +8,13 @@ export const publicRequestCreateSchema = z.object({
   allergiesNote: z.string().max(500).optional(),
   budgetEstimate: z.number().nonnegative().optional(),
   preferredCurrency: z.enum(['CUP', 'MLC', 'USD']).optional(),
-  requestedSlot: z.string().datetime().optional(),
+  requestedSlot: z
+    .string()
+    .datetime()
+    .refine((s) => new Date(s).getTime() > Date.now() - 60_000, {
+      message: 'La fecha solicitada no puede estar en el pasado',
+    })
+    .optional(),
   serviceId: z.string().optional(),
   preferredChannel: z.enum(['WHATSAPP', 'TELEGRAM', 'EMAIL', 'SMS', 'INAPP']).optional(),
   consentContact: z.boolean().refine((v) => v === true, 'Debes aceptar el contacto'),

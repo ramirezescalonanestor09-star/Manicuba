@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { useConfirm } from '@/components/UI';
+import { useToast } from '@/components/Toast';
 
 interface Template {
   id: string;
@@ -13,6 +15,8 @@ export default function PlantillasPage() {
   const [items, setItems] = useState<Template[]>([]);
   const [form, setForm] = useState({ name: '', body: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirm();
+  const toast = useToast();
 
   async function load() {
     setItems(await api<Template[]>('/quote-templates'));
@@ -39,12 +43,15 @@ export default function PlantillasPage() {
   }
 
   async function remove(id: string) {
+    if (!(await confirm('Eliminar esta plantilla?'))) return;
     await api(`/quote-templates/${id}`, { method: 'DELETE' });
+    toast.success('Plantilla eliminada');
     load();
   }
 
   return (
     <div className="space-y-4">
+      {dialog}
       <h1 className="text-2xl font-bold text-rose-700">Plantillas de cotizacion</h1>
       <p className="text-rose-900/70">
         Crea mensajes reutilizables para enviar cotizaciones rapido. Puedes usar texto libre.

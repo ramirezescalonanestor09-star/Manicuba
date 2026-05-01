@@ -76,6 +76,28 @@ export class AppointmentsController {
     });
   }
 
+  @Get(':id')
+  async get(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    const appt = await this.prisma.appointment.findFirst({
+      where: { id, tenantId: user.tenantId },
+      include: {
+        client: {
+          select: {
+            id: true,
+            fullName: true,
+            phoneE164: true,
+            loyaltyPoints: true,
+            email: true,
+          },
+        },
+        service: { select: { id: true, name: true } },
+        request: { select: { publicToken: true } },
+      },
+    });
+    if (!appt) throw new NotFoundException();
+    return appt;
+  }
+
   @Post()
   async create(
     @CurrentUser() user: AuthUser,
@@ -165,7 +187,7 @@ export class AppointmentsController {
       action: 'UPDATE',
       entity: 'Appointment',
       entityId: id,
-      metadata: body as never,
+      metadata: body as Record<string, unknown>,
     });
     return updated;
   }
@@ -202,7 +224,7 @@ export class AppointmentsController {
       action: 'PAY',
       entity: 'Appointment',
       entityId: id,
-      metadata: body as never,
+      metadata: body as Record<string, unknown>,
     });
     return updated;
   }

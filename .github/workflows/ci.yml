@@ -19,5 +19,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @manicuba/shared build
+      - run: pnpm --filter @manicuba/shared test
       - run: pnpm --filter @manicuba/api prisma:generate
       - run: pnpm typecheck

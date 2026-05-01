@@ -21,6 +21,11 @@ interface StorageDriver {
   fetchBuffer(storageKey: string): Promise<Buffer | null>;
 }
 
+function safeExtension(ext: string): string {
+  const cleaned = ext.replace(/^\./, '').toLowerCase();
+  return /^[a-z0-9]+$/.test(cleaned) ? cleaned : 'bin';
+}
+
 class LocalDriver implements StorageDriver {
   constructor(private readonly baseDir: string) {}
 
@@ -29,7 +34,7 @@ class LocalDriver implements StorageDriver {
     const dateDir = new Date().toISOString().slice(0, 10);
     const dir = path.join(this.baseDir, prefix, dateDir);
     await fs.mkdir(dir, { recursive: true });
-    const filename = `${id}.${ext.replace(/^\./, '')}`;
+    const filename = `${id}.${safeExtension(ext)}`;
     const fullPath = path.join(dir, filename);
     await fs.writeFile(fullPath, buffer);
     const storageKey = path.relative(this.baseDir, fullPath).replace(/\\/g, '/');
@@ -41,8 +46,11 @@ class LocalDriver implements StorageDriver {
   }
 
   async resolveLocal(storageKey: string) {
-    const safe = storageKey.replace(/\.\./g, '');
-    return { path: path.join(this.baseDir, safe) };
+    const resolved = path.resolve(this.baseDir, storageKey);
+    if (!resolved.startsWith(this.baseDir + path.sep) && resolved !== this.baseDir) {
+      return null;
+    }
+    return { path: resolved };
   }
 
   async fetchBuffer(): Promise<Buffer | null> {
@@ -71,7 +79,7 @@ class S3Driver implements StorageDriver {
   async save(buffer: Buffer, ext: string, prefix: string): Promise<StoredFile> {
     const id = randomBytes(12).toString('hex');
     const dateDir = new Date().toISOString().slice(0, 10);
-    const key = `${prefix}/${dateDir}/${id}.${ext.replace(/^\./, '')}`;
+    const key = `${prefix}/${dateDir}/${id}.${safeExtension(ext)}`;
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
