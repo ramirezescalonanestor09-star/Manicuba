@@ -183,13 +183,30 @@ Son warnings, no errores. Next 15 admite React 18.3.x oficialmente. Ignoralos.
 Otro proceso escuchando. `lsof -i :4000` (o `:3000`) para encontrarlo, o cambia
 `PORT` en `apps/api/.env`.
 
-**7. `ECONNREFUSED 127.0.0.1:5432` / `:6379`**
+**7. `bind: address already in use` al levantar Docker, o `ECONNREFUSED`**
 
-Postgres o Redis no levantados:
+El docker-compose mapea **5433 (host) → 5432 (contenedor)** para Postgres y
+**6380 → 6379** para Redis, asi nunca choca con un Postgres/Redis ya instalado en
+tu sistema. Asegurate de que tu `.env` use esos puertos:
+
+```
+DATABASE_URL=postgresql://manicuba:manicuba@localhost:5433/manicuba?schema=public
+REDIS_HOST=localhost
+REDIS_PORT=6380
+```
+
+Comprobaciones:
 
 ```bash
-docker compose up -d
-docker compose logs postgres redis      # ver que estan ok
+docker compose ps                          # ambos "Up", postgres "healthy"
+sudo ss -ltnp | grep -E ':(5433|6380)'     # docker debe tener esos puertos
+docker exec -it manicuba-postgres psql -U manicuba -d manicuba -c '\conninfo'
+```
+
+Si vienes de una version anterior con 5432/6379 y ya tenias volumenes:
+
+```bash
+docker compose down -v && docker compose up -d
 ```
 
 ## Roadmap
