@@ -187,7 +187,7 @@ export class AppointmentsController {
       action: 'UPDATE',
       entity: 'Appointment',
       entityId: id,
-      metadata: body as Record<string, unknown>,
+      metadata: body,
     });
     return updated;
   }
@@ -224,7 +224,7 @@ export class AppointmentsController {
       action: 'PAY',
       entity: 'Appointment',
       entityId: id,
-      metadata: body as Record<string, unknown>,
+      metadata: body,
     });
     return updated;
   }

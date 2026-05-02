@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { Prisma } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
 
 import { PrismaService } from '../common/prisma.service';
@@ -45,7 +46,11 @@ export class NotificationsService {
         tenantId: input.tenantId,
         channel: input.channel,
         to: input.to,
-        payload: { subject: input.subject, body: input.body, meta: input.meta ?? {} },
+        payload: {
+          subject: input.subject ?? null,
+          body: input.body,
+          meta: (input.meta ?? {}) as Prisma.InputJsonValue,
+        },
       },
     });
 

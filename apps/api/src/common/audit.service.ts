@@ -8,7 +8,7 @@ interface LogInput {
   action: string;
   entity: string;
   entityId?: string;
-  metadata?: Prisma.InputJsonValue;
+  metadata?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -26,7 +26,7 @@ export class AuditService {
           action: input.action,
           entity: input.entity,
           entityId: input.entityId,
-          metadata: input.metadata,
+          metadata: (input.metadata ?? {}) as Prisma.InputJsonValue,
         },
       });
     } catch (err) {
