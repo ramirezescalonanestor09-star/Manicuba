@@ -17,7 +17,9 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      # Una vez generes pnpm-lock.yaml localmente y lo commitees, cambia a
+      # `pnpm install --frozen-lockfile` para builds reproducibles.
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm --filter @manicuba/shared build
       - run: pnpm --filter @manicuba/shared test
       - run: pnpm --filter @manicuba/api prisma:generate

@@ -8,14 +8,15 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["@manicuba/shared#build"]
     },
     "lint": {},
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["@manicuba/shared#build"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["@manicuba/shared#build"]
     }
   }
 }

@@ -27,24 +27,30 @@ packages/
 ## Arranque rapido
 
 ```bash
-# 1. Instalar dependencias
+# 1. Instalar dependencias (esto tambien ejecuta `prisma generate` automaticamente)
 pnpm install
 
-# 2. Levantar Postgres + Redis
+# 2. Construir el paquete compartido la primera vez
+pnpm --filter @manicuba/shared build
+
+# 3. Levantar Postgres + Redis
 docker compose up -d
 
-# 3. Configurar variables de entorno
+# 4. Configurar variables de entorno
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 
-# 4. Migrar y sembrar la base
-pnpm --filter @manicuba/api prisma:generate
+# 5. Migrar y sembrar la base
 pnpm --filter @manicuba/api prisma:migrate
 pnpm --filter @manicuba/api prisma:seed
 
-# 5. Levantar todo (API en :4000, web en :3000)
+# 6. Levantar todo (API en :4000, web en :3000)
 pnpm dev
 ```
+
+> Si ves errores de import como `Cannot find module '@manicuba/shared'` o
+> `@prisma/client did not initialize yet`, mira la seccion de **Resolucion de
+> problemas** mas abajo.
 
 Credenciales del tenant demo creado por el seed:
 
@@ -129,6 +135,61 @@ pnpm --filter @manicuba/api prisma:migrate
 pnpm --filter @manicuba/shared test          # tests unitarios (phone, currency, share-links)
 pnpm --filter @manicuba/api test              # AvailabilityService.assertSlotFree (jest)
 curl http://localhost:4000/api/health         # health check
+```
+
+## Resolucion de problemas comunes
+
+**1. `Cannot find module '@manicuba/shared'` cuando arranca la API**
+
+El paquete `@manicuba/shared` se exporta desde `dist/`, asi que **necesita estar
+construido al menos una vez** antes de levantar la API. Esto pasa solo si saltaste
+turbo y ejecutaste `nest start` directo. Solucion:
+
+```bash
+pnpm --filter @manicuba/shared build
+# o simplemente
+pnpm dev      # turbo construye shared antes de arrancar dev
+```
+
+**2. `@prisma/client did not initialize yet` o `Cannot find module '.prisma/client'`**
+
+Falta correr `prisma generate`. Lo agregamos como `postinstall`, pero si lo viste antes
+de eso, ejecutalo a mano:
+
+```bash
+pnpm --filter @manicuba/api prisma:generate
+```
+
+**3. Errores de native build en `argon2` o `sharp`**
+
+Son binarios nativos. Necesitas Python 3 y herramientas de build (en Linux:
+`build-essential`, en macOS: `xcode-select --install`). Si pnpm con symlinks falla:
+
+```bash
+pnpm install --shamefully-hoist
+```
+
+**4. CI falla con `ERR_PNPM_NO_LOCKFILE`**
+
+No hay `pnpm-lock.yaml` commiteado. Genera uno localmente con `pnpm install`, commitealo,
+y cambia el workflow de CI de `--no-frozen-lockfile` a `--frozen-lockfile`.
+
+**5. Peer dep warnings de React 18 con Next 15**
+
+Son warnings, no errores. Next 15 admite React 18.3.x oficialmente. Ignoralos.
+
+**6. `EADDRINUSE :4000` o `:3000`**
+
+Otro proceso escuchando. `lsof -i :4000` (o `:3000`) para encontrarlo, o cambia
+`PORT` en `apps/api/.env`.
+
+**7. `ECONNREFUSED 127.0.0.1:5432` / `:6379`**
+
+Postgres o Redis no levantados:
+
+```bash
+docker compose up -d
+docker compose logs postgres redis      # ver que estan ok
 ```
 
 ## Roadmap
