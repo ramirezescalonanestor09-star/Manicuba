@@ -52,20 +52,20 @@ export default async function PublicRequestPage({
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-6">
       <header>
-        <p className="text-sm uppercase tracking-wide text-rose-600">
+        <p className="text-sm uppercase tracking-wide text-primary">
           Solicitud {statusLabel[request.status] ?? request.status}
         </p>
-        <h1 className="text-3xl font-bold text-rose-700">
+        <h1 className="text-3xl font-bold text-primary">
           Hola {request.client.fullName.split(' ')[0]}!
         </h1>
-        <p className="mt-2 text-rose-900/80">
+        <p className="mt-2 text-fg-soft">
           Para {request.tenant.businessName} · {request.tenant.ownerName}
         </p>
       </header>
 
       <section className="card">
-        <h2 className="text-lg font-semibold text-rose-700">Lo que pediste</h2>
-        <p className="mt-2 whitespace-pre-line text-rose-900/80">{request.description}</p>
+        <h2 className="text-lg font-semibold text-primary">Lo que pediste</h2>
+        <p className="mt-2 whitespace-pre-line text-fg-soft">{request.description}</p>
         {request.images.length > 0 && (
           <div className="mt-4 grid grid-cols-3 gap-2">
             {request.images.map((img) => (
@@ -82,17 +82,17 @@ export default async function PublicRequestPage({
 
       {request.quote ? (
         <section className="card">
-          <h2 className="text-lg font-semibold text-rose-700">Tu cotizacion</h2>
-          <p className="mt-1 text-3xl font-bold text-rose-700">
+          <h2 className="text-lg font-semibold text-primary">Tu cotizacion</h2>
+          <p className="mt-1 text-3xl font-bold text-primary">
             {formatAmount(request.quote.amount, request.quote.currency)}
           </p>
           {request.quote.message && (
-            <p className="mt-3 whitespace-pre-line text-rose-900/80">
+            <p className="mt-3 whitespace-pre-line text-fg-soft">
               {request.quote.message}
             </p>
           )}
           {request.quote.validUntil && (
-            <p className="mt-3 text-xs text-rose-900/60">
+            <p className="mt-3 text-xs text-fg-muted">
               Valida hasta: {new Date(request.quote.validUntil).toLocaleDateString('es-CU')}
             </p>
           )}
@@ -112,8 +112,8 @@ export default async function PublicRequestPage({
         </section>
       ) : (
         <section className="card">
-          <h2 className="text-lg font-semibold text-rose-700">Esperando cotizacion</h2>
-          <p className="mt-2 text-rose-900/80">
+          <h2 className="text-lg font-semibold text-primary">Esperando cotizacion</h2>
+          <p className="mt-2 text-fg-soft">
             La manicuri esta revisando tu solicitud. Recibiras la cotizacion pronto.
           </p>
         </section>
@@ -121,7 +121,7 @@ export default async function PublicRequestPage({
 
       {request.thread && (
         <section className="card">
-          <h2 className="text-lg font-semibold text-rose-700">Conversacion</h2>
+          <h2 className="text-lg font-semibold text-primary">Conversacion</h2>
           <ClientChat threadToken={request.thread.publicToken} />
         </section>
       )}

@@ -20,7 +20,7 @@ const HOURS = Array.from({ length: 14 }, (_, i) => 7 + i); // 7:00 a 20:00
 
 const STATUS_COLOR: Record<string, string> = {
   PENDING: 'bg-amber-300 text-amber-900',
-  CONFIRMED: 'bg-rose-500 text-white',
+  CONFIRMED: 'bg-primary text-white',
   COMPLETED: 'bg-emerald-500 text-white',
   CANCELLED: 'bg-gray-300 text-gray-700 line-through',
   NO_SHOW: 'bg-red-300 text-red-900',
@@ -35,16 +35,16 @@ export function WeekCalendar({ weekStart, appointments, onSelect }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-rose-100 bg-white">
+    <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
       <div className="grid min-w-[720px] grid-cols-[60px_repeat(7,minmax(110px,1fr))]">
-        <div className="border-b border-rose-100 bg-rose-50/40" />
+        <div className="border-b border-border bg-surface-2" />
         {days.map((d, idx) => (
           <div
             key={idx}
-            className="border-b border-rose-100 bg-rose-50/40 px-2 py-2 text-center text-xs"
+            className="border-b border-border bg-surface-2 px-2 py-2 text-center text-xs"
           >
-            <p className="font-semibold text-rose-700">{DAY_NAMES[d.getDay()]}</p>
-            <p className="text-rose-900/60">
+            <p className="font-semibold text-fg">{DAY_NAMES[d.getDay()]}</p>
+            <p className="text-fg-muted">
               {d.getDate()}/{d.getMonth() + 1}
             </p>
           </div>
@@ -77,7 +77,7 @@ function RowFragment({
 }) {
   return (
     <>
-      <div className="border-b border-rose-50 px-2 py-3 text-right text-xs text-rose-900/50">
+      <div className="border-b border-border px-2 py-3 text-right text-xs text-fg-muted">
         {String(hour).padStart(2, '0')}:00
       </div>
       {days.map((d, idx) => {
@@ -95,14 +95,14 @@ function RowFragment({
           );
         });
         return (
-          <div key={idx} className="relative h-14 border-b border-rose-50 px-1 py-1">
+          <div key={idx} className="relative h-14 border-b border-border px-1 py-1">
             {matches.map((a) => (
               <button
                 key={a.id}
                 onClick={() => onSelect?.(a.id)}
                 className={
                   'absolute inset-x-1 top-1 truncate rounded-lg px-2 py-1 text-left text-xs ' +
-                  (STATUS_COLOR[a.status] ?? 'bg-rose-200 text-rose-900')
+                  (STATUS_COLOR[a.status] ?? 'bg-primary-soft text-fg')
                 }
                 title={`${a.client.fullName}${a.service ? ' · ' + a.service.name : ''}`}
               >

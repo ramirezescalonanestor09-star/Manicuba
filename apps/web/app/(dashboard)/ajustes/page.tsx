@@ -24,7 +24,7 @@ export default function AjustesPage() {
     api<Tenant>('/tenant').then(setTenant).catch(() => {});
   }, []);
 
-  if (!tenant) return <p className="text-rose-700">Cargando...</p>;
+  if (!tenant) return <p className="text-primary">Cargando...</p>;
 
   function update<K extends keyof Tenant>(k: K, v: Tenant[K]) {
     setTenant({ ...tenant!, [k]: v });
@@ -52,7 +52,7 @@ export default function AjustesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-rose-700">Ajustes del negocio</h1>
+      <h1 className="text-2xl font-bold text-primary">Ajustes del negocio</h1>
 
       <div className="card grid gap-3 sm:grid-cols-2">
         <div>
@@ -171,8 +171,8 @@ function BackupCard() {
 
   return (
     <section className="card">
-      <h2 className="text-lg font-semibold text-rose-700">Respaldo</h2>
-      <p className="mt-2 text-sm text-rose-900/70">
+      <h2 className="text-lg font-semibold text-primary">Respaldo</h2>
+      <p className="mt-2 text-sm text-fg-soft">
         Descarga un JSON con todos tus datos (clientas, servicios, citas, gastos, plantillas,
         galeria). Util para guardar copia local.
       </p>

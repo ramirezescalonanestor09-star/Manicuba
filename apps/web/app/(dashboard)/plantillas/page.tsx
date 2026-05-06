@@ -52,8 +52,8 @@ export default function PlantillasPage() {
   return (
     <div className="space-y-4">
       {dialog}
-      <h1 className="text-2xl font-bold text-rose-700">Plantillas de cotizacion</h1>
-      <p className="text-rose-900/70">
+      <h1 className="text-2xl font-bold text-primary">Plantillas de cotizacion</h1>
+      <p className="text-fg-soft">
         Crea mensajes reutilizables para enviar cotizaciones rapido. Puedes usar texto libre.
       </p>
 
@@ -91,7 +91,7 @@ export default function PlantillasPage() {
         {items.map((t) => (
           <div key={t.id} className="card">
             <div className="flex items-center justify-between">
-              <p className="font-semibold text-rose-800">{t.name}</p>
+              <p className="font-semibold text-fg">{t.name}</p>
               <div className="flex gap-2">
                 <button className="btn-ghost text-xs" onClick={() => edit(t)}>
                   Editar
@@ -101,7 +101,7 @@ export default function PlantillasPage() {
                 </button>
               </div>
             </div>
-            <pre className="mt-2 whitespace-pre-wrap text-sm text-rose-900/80">{t.body}</pre>
+            <pre className="mt-2 whitespace-pre-wrap text-sm text-fg-soft">{t.body}</pre>
           </div>
         ))}
       </div>

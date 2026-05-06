@@ -142,9 +142,9 @@ export default function RequestDetail() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-xs uppercase text-rose-600">Solicitud {data.status}</p>
-          <h1 className="text-2xl font-bold text-rose-700">{data.client.fullName}</h1>
-          <p className="text-sm text-rose-900/70">{data.client.phoneE164}</p>
+          <p className="text-xs uppercase text-primary">Solicitud {data.status}</p>
+          <h1 className="text-2xl font-bold text-primary">{data.client.fullName}</h1>
+          <p className="text-sm text-fg-soft">{data.client.phoneE164}</p>
         </div>
         <div className="flex gap-2">
           <button className="btn-ghost text-sm" onClick={() => setStatus('REVIEWING')}>
@@ -157,15 +157,15 @@ export default function RequestDetail() {
       </header>
 
       <section className="card">
-        <h2 className="text-lg font-semibold text-rose-700">Lo que pide</h2>
-        <p className="mt-2 whitespace-pre-line text-rose-900/80">{data.description}</p>
+        <h2 className="text-lg font-semibold text-primary">Lo que pide</h2>
+        <p className="mt-2 whitespace-pre-line text-fg-soft">{data.description}</p>
         {data.allergiesNote && (
           <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
             <strong>Alergias / cuidados:</strong> {data.allergiesNote}
           </p>
         )}
         {data.budgetEstimate != null && (
-          <p className="mt-2 text-sm text-rose-900/70">
+          <p className="mt-2 text-sm text-fg-soft">
             Presupuesto aprox: {data.budgetEstimate}
             {data.preferredCurrency ? ` ${data.preferredCurrency}` : ''}
           </p>
@@ -186,7 +186,7 @@ export default function RequestDetail() {
       </section>
 
       <section className="card">
-        <h2 className="text-lg font-semibold text-rose-700">
+        <h2 className="text-lg font-semibold text-primary">
           {data.quote ? 'Editar cotizacion' : 'Cotizar'}
         </h2>
         <form onSubmit={submitQuote} className="mt-3 space-y-3">
@@ -260,12 +260,12 @@ export default function RequestDetail() {
 
       {data.quote && (
         <section className="card">
-          <h2 className="text-lg font-semibold text-rose-700">Compartir cotizacion</h2>
-          <p className="mt-2 text-sm text-rose-900/70">
+          <h2 className="text-lg font-semibold text-primary">Compartir cotizacion</h2>
+          <p className="mt-2 text-sm text-fg-soft">
             Total:{' '}
             <strong>{formatAmount(data.quote.amount, data.quote.currency)}</strong>
           </p>
-          <code className="mt-3 block break-all rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-700">
+          <code className="mt-3 block break-all rounded-xl bg-surface-2 px-3 py-2 text-xs text-primary">
             {publicUrl}
           </code>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -312,10 +312,10 @@ export default function RequestDetail() {
             </button>
           </div>
           <details className="mt-3">
-            <summary className="cursor-pointer text-sm text-rose-700">
+            <summary className="cursor-pointer text-sm text-primary">
               Ver mensaje completo
             </summary>
-            <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-rose-50 p-3 text-xs text-rose-900">
+            <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-surface-2 p-3 text-xs text-fg">
               {shareMessage}
             </pre>
           </details>

@@ -55,7 +55,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 ? 'bg-emerald-500 text-white'
                 : t.variant === 'error'
                 ? 'bg-red-500 text-white'
-                : 'bg-rose-700 text-white')
+                : 'bg-fg text-bg')
             }
           >
             {t.message}

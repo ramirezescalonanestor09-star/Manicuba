@@ -22,7 +22,7 @@ export default function OlvidePasswordPage() {
 
   return (
     <main className="mx-auto max-w-md px-6 py-16">
-      <h1 className="text-3xl font-bold text-rose-700">Restablecer contrasena</h1>
+      <h1 className="text-3xl font-bold text-primary">Restablecer contrasena</h1>
       {done ? (
         <p className="mt-6 card">
           Si ese correo existe, te enviamos un enlace para restablecer tu contrasena. Revisa tu
@@ -43,8 +43,8 @@ export default function OlvidePasswordPage() {
           <button className="btn-primary w-full" disabled={loading}>
             {loading ? 'Enviando...' : 'Enviar enlace'}
           </button>
-          <p className="text-sm text-rose-900/70">
-            <Link href="/login" className="text-rose-600">
+          <p className="text-sm text-fg-soft">
+            <Link href="/login" className="text-primary">
               ← Volver a entrar
             </Link>
           </p>

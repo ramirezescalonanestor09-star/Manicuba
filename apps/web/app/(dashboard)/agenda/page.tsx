@@ -51,12 +51,12 @@ export default function AgendaPage() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-rose-700">Agenda</h1>
+        <h1 className="text-2xl font-bold text-primary">Agenda</h1>
         <div className="flex items-center gap-2">
           <button className="btn-ghost text-sm" onClick={() => shift(-7)}>
             ←
           </button>
-          <span className="text-sm text-rose-900/70">
+          <span className="text-sm text-fg-soft">
             Semana del {weekStart.toLocaleDateString('es-CU')}
           </span>
           <button className="btn-ghost text-sm" onClick={() => shift(7)}>
@@ -77,16 +77,16 @@ export default function AgendaPage() {
         onSelect={(id) => (window.location.href = `/agenda/${id}`)}
       />
 
-      <h2 className="mt-6 text-lg font-semibold text-rose-700">Lista</h2>
+      <h2 className="mt-6 text-lg font-semibold text-primary">Lista</h2>
       <div className="grid gap-2">
-        {list.length === 0 && <p className="text-rose-900/60">Sin citas en la semana.</p>}
+        {list.length === 0 && <p className="text-fg-muted">Sin citas en la semana.</p>}
         {list.map((a) => (
           <Link key={a.id} href={`/agenda/${a.id}`} className="card hover:shadow-md">
             <div className="flex items-center justify-between">
-              <p className="font-semibold text-rose-800">{a.client.fullName}</p>
-              <span className="text-xs uppercase text-rose-600">{a.status}</span>
+              <p className="font-semibold text-fg">{a.client.fullName}</p>
+              <span className="text-xs uppercase text-primary">{a.status}</span>
             </div>
-            <p className="text-sm text-rose-900/70">
+            <p className="text-sm text-fg-soft">
               {new Date(a.startAt).toLocaleString('es-CU')} —{' '}
               {new Date(a.endAt).toLocaleTimeString('es-CU', {
                 hour: '2-digit',
@@ -95,7 +95,7 @@ export default function AgendaPage() {
               {a.service ? ` · ${a.service.name}` : ''}
             </p>
             {a.priceFinal != null && (
-              <p className="mt-1 text-sm text-rose-700">
+              <p className="mt-1 text-sm text-primary">
                 {a.priceFinal} {a.currency}
               </p>
             )}

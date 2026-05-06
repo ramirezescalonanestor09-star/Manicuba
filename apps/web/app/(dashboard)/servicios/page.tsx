@@ -61,7 +61,7 @@ export default function ServiciosPage() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-rose-700">Servicios</h1>
+        <h1 className="text-2xl font-bold text-primary">Servicios</h1>
         <button onClick={() => setCreating(!creating)} className="btn-primary">
           {creating ? 'Cerrar' : 'Nuevo servicio'}
         </button>
@@ -119,18 +119,18 @@ export default function ServiciosPage() {
         {items.map((s) => (
           <div key={s.id} className="card">
             <div className="flex items-center justify-between">
-              <p className="font-semibold text-rose-800">
+              <p className="font-semibold text-fg">
                 {s.name}{' '}
                 {!s.active && (
-                  <span className="text-xs text-rose-900/50">(inactivo)</span>
+                  <span className="text-xs text-fg-muted">(inactivo)</span>
                 )}
               </p>
               <button className="btn-ghost text-xs" onClick={() => toggleActive(s)}>
                 {s.active ? 'Pausar' : 'Activar'}
               </button>
             </div>
-            {s.description && <p className="mt-1 text-sm text-rose-900/70">{s.description}</p>}
-            <p className="mt-2 text-sm text-rose-900/70">
+            {s.description && <p className="mt-1 text-sm text-fg-soft">{s.description}</p>}
+            <p className="mt-2 text-sm text-fg-soft">
               {s.durationMin} min ·{' '}
               {[
                 s.priceCUP && `${s.priceCUP} CUP`,

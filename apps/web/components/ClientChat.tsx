@@ -91,18 +91,18 @@ export function ClientChat({ threadToken }: { threadToken: string }) {
     <div className="mt-3">
       <div
         ref={containerRef}
-        className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-xl bg-rose-50/50 p-3"
+        className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-xl bg-surface-2 p-3"
       >
         {thread?.messages.length === 0 && (
-          <p className="text-sm text-rose-900/60">Inicia la conversacion.</p>
+          <p className="text-sm text-fg-muted">Inicia la conversacion.</p>
         )}
         {thread?.messages.map((m) => (
           <div
             key={m.id}
             className={
               m.fromType === 'CLIENT'
-                ? 'self-end max-w-[80%] rounded-2xl bg-rose-500 px-3 py-2 text-sm text-white'
-                : 'self-start max-w-[80%] rounded-2xl bg-white px-3 py-2 text-sm text-rose-900 shadow-sm'
+                ? 'self-end max-w-[80%] rounded-2xl bg-primary px-3 py-2 text-sm text-white shadow-md shadow-primary/30'
+                : 'self-start max-w-[80%] rounded-2xl bg-surface px-3 py-2 text-sm shadow-sm border border-border'
             }
           >
             {m.body && <p>{m.body}</p>}

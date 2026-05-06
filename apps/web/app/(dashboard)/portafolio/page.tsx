@@ -48,7 +48,7 @@ export default function PortafolioPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-rose-700">Portafolio</h1>
+      <h1 className="text-2xl font-bold text-primary">Portafolio</h1>
 
       <form onSubmit={upload} className="card flex flex-col gap-3 sm:flex-row sm:items-end">
         <input ref={fileRef} type="file" accept="image/*" required />
@@ -72,7 +72,7 @@ export default function PortafolioPage() {
             <button
               type="button"
               onClick={() => remove(g.id)}
-              className="absolute right-1 top-1 rounded-full bg-white/80 px-2 py-1 text-xs text-rose-700"
+              className="absolute right-1 top-1 rounded-full bg-white/80 px-2 py-1 text-xs text-primary"
             >
               Eliminar
             </button>

@@ -79,7 +79,7 @@ export default function CajaPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-rose-700">Caja</h1>
+      <h1 className="text-2xl font-bold text-primary">Caja</h1>
 
       <div className="flex flex-wrap items-end gap-3">
         <div>
@@ -105,11 +105,11 @@ export default function CajaPage() {
       {report && (
         <section className="grid gap-3 sm:grid-cols-2">
           <div className="card">
-            <p className="text-xs uppercase text-rose-600">Citas pagadas</p>
-            <p className="mt-1 text-3xl font-bold text-rose-700">{report.count}</p>
+            <p className="text-xs uppercase text-primary">Citas pagadas</p>
+            <p className="mt-1 text-3xl font-bold text-primary">{report.count}</p>
           </div>
           <div className="card">
-            <p className="text-xs uppercase text-rose-600">Ganancia neta</p>
+            <p className="text-xs uppercase text-primary">Ganancia neta</p>
             <ul className="mt-2 space-y-1 text-sm">
               {Object.keys(report.net).length === 0 && <li>Sin movimientos.</li>}
               {Object.entries(report.net).map(([c, v]) => (
@@ -121,7 +121,7 @@ export default function CajaPage() {
             </ul>
           </div>
           <div className="card">
-            <p className="text-xs uppercase text-rose-600">Ingresos</p>
+            <p className="text-xs uppercase text-primary">Ingresos</p>
             <ul className="mt-2 space-y-1 text-sm">
               {Object.entries(report.income).map(([c, v]) => (
                 <li key={c} className="flex justify-between">
@@ -131,7 +131,7 @@ export default function CajaPage() {
               ))}
               {Object.entries(report.tips).map(([c, v]) =>
                 v > 0 ? (
-                  <li key={`t-${c}`} className="flex justify-between text-rose-900/60">
+                  <li key={`t-${c}`} className="flex justify-between text-fg-muted">
                     <span>{c} (propinas)</span>
                     <span>{v.toFixed(2)}</span>
                   </li>
@@ -140,7 +140,7 @@ export default function CajaPage() {
             </ul>
           </div>
           <div className="card">
-            <p className="text-xs uppercase text-rose-600">Gastos</p>
+            <p className="text-xs uppercase text-primary">Gastos</p>
             <ul className="mt-2 space-y-1 text-sm">
               {Object.entries(report.expenses).map(([c, v]) => (
                 <li key={c} className="flex justify-between">
@@ -153,7 +153,7 @@ export default function CajaPage() {
         </section>
       )}
 
-      <h2 className="mt-6 text-lg font-semibold text-rose-700">Gastos del periodo</h2>
+      <h2 className="mt-6 text-lg font-semibold text-primary">Gastos del periodo</h2>
       <form onSubmit={addExpense} className="card grid gap-3 sm:grid-cols-4">
         <input
           className="input"
@@ -188,15 +188,15 @@ export default function CajaPage() {
       </form>
 
       <div className="grid gap-2">
-        {expenses.length === 0 && <p className="text-rose-900/60">Sin gastos en el periodo.</p>}
+        {expenses.length === 0 && <p className="text-fg-muted">Sin gastos en el periodo.</p>}
         {expenses.map((e) => (
           <div key={e.id} className="card flex items-center justify-between">
             <div>
-              <p className="font-semibold text-rose-800">
+              <p className="font-semibold text-fg">
                 {e.amount} {e.currency}
                 {e.category ? ` · ${e.category}` : ''}
               </p>
-              <p className="text-sm text-rose-900/60">
+              <p className="text-sm text-fg-muted">
                 {new Date(e.date).toLocaleDateString('es-CU')}
                 {e.description ? ` · ${e.description}` : ''}
               </p>

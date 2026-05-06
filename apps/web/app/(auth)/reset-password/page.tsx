@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
     return (
       <main className="mx-auto max-w-md px-6 py-16 text-center">
         <p className="text-red-600">Token invalido o vencido.</p>
-        <Link href="/olvide-password" className="mt-4 inline-block text-rose-600">
+        <Link href="/olvide-password" className="mt-4 inline-block text-primary">
           Pedir un nuevo enlace
         </Link>
       </main>
@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
 
   return (
     <main className="mx-auto max-w-md px-6 py-16">
-      <h1 className="text-3xl font-bold text-rose-700">Nueva contrasena</h1>
+      <h1 className="text-3xl font-bold text-primary">Nueva contrasena</h1>
       <form onSubmit={onSubmit} className="card mt-8 space-y-4">
         <div>
           <label className="label">Contrasena</label>

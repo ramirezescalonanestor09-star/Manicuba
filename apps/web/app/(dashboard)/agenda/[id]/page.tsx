@@ -70,14 +70,14 @@ export default function AppointmentDetail() {
     }
   }
 
-  if (!data) return <p className="text-rose-700">Cargando...</p>;
+  if (!data) return <p className="text-primary">Cargando...</p>;
 
   return (
     <div className="space-y-4">
       <header>
-        <p className="text-xs uppercase text-rose-600">Cita {data.status}</p>
-        <h1 className="text-2xl font-bold text-rose-700">{data.client.fullName}</h1>
-        <p className="text-sm text-rose-900/70">
+        <p className="text-xs uppercase text-primary">Cita {data.status}</p>
+        <h1 className="text-2xl font-bold text-primary">{data.client.fullName}</h1>
+        <p className="text-sm text-fg-soft">
           {new Date(data.startAt).toLocaleString('es-CU')} —{' '}
           {new Date(data.endAt).toLocaleTimeString('es-CU', {
             hour: '2-digit',
@@ -85,7 +85,7 @@ export default function AppointmentDetail() {
           })}
           {data.service ? ` · ${data.service.name}` : ''}
         </p>
-        <p className="mt-1 text-sm text-rose-900/70">
+        <p className="mt-1 text-sm text-fg-soft">
           {data.client.loyaltyPoints} puntos de fidelidad
         </p>
       </header>
@@ -103,11 +103,11 @@ export default function AppointmentDetail() {
       </div>
 
       <section className="card">
-        <h2 className="text-lg font-semibold text-rose-700">
+        <h2 className="text-lg font-semibold text-primary">
           {data.paidAt ? 'Pago registrado' : 'Registrar pago'}
         </h2>
         {data.paidAt && (
-          <p className="mt-1 text-sm text-rose-900/70">
+          <p className="mt-1 text-sm text-fg-soft">
             Pagado {data.amountPaid} {data.currency}
             {data.tipAmount ? ` (+ propina ${data.tipAmount})` : ''} ·{' '}
             {data.paymentMethod}

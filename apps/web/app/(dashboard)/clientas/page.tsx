@@ -53,7 +53,7 @@ export default function ClientasPage() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-rose-700">Clientas</h1>
+        <h1 className="text-2xl font-bold text-primary">Clientas</h1>
         <button onClick={() => setCreating(!creating)} className="btn-primary">
           {creating ? 'Cerrar' : 'Nueva clienta'}
         </button>
@@ -109,8 +109,8 @@ export default function ClientasPage() {
         {items?.map((c) => (
           <div key={c.id} className="card flex items-center justify-between">
             <div>
-              <p className="font-semibold text-rose-800">{c.fullName}</p>
-              <p className="text-sm text-rose-900/70">
+              <p className="font-semibold text-fg">{c.fullName}</p>
+              <p className="text-sm text-fg-soft">
                 {c.phoneE164}
                 {c.email ? ` · ${c.email}` : ''}
               </p>
@@ -120,7 +120,7 @@ export default function ClientasPage() {
                 'rounded-full px-3 py-1 text-xs ' +
                 (c.loyaltyPoints >= 10
                   ? 'bg-emerald-200 text-emerald-900'
-                  : 'bg-rose-100 text-rose-700')
+                  : 'bg-primary-soft text-primary')
               }
             >
               {c.loyaltyPoints >= 10 ? '★ ' : ''}

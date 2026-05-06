@@ -40,7 +40,7 @@ export default function SolicitudesList() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-rose-700">Solicitudes</h1>
+        <h1 className="text-2xl font-bold text-primary">Solicitudes</h1>
         <select
           className="input w-auto"
           value={filter}
@@ -76,15 +76,15 @@ export default function SolicitudesList() {
                 alt=""
               />
             ) : (
-              <div className="h-20 w-20 flex-shrink-0 rounded-xl bg-rose-100" />
+              <div className="h-20 w-20 flex-shrink-0 rounded-xl bg-primary-soft" />
             )}
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <p className="font-semibold text-rose-800">{r.client.fullName}</p>
-                <span className="text-xs uppercase text-rose-600">{r.status}</span>
+                <p className="font-semibold text-fg">{r.client.fullName}</p>
+                <span className="text-xs uppercase text-primary">{r.status}</span>
               </div>
-              <p className="mt-1 text-sm text-rose-900/70 line-clamp-2">{r.description}</p>
-              <p className="mt-1 text-xs text-rose-900/60">
+              <p className="mt-1 text-sm text-fg-soft line-clamp-2">{r.description}</p>
+              <p className="mt-1 text-xs text-fg-muted">
                 {new Date(r.createdAt).toLocaleString('es-CU')}
                 {r.quote ? ` · ${r.quote.amount} ${r.quote.currency}` : ''}
               </p>

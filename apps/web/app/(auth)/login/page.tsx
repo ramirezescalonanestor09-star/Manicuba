@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 import { api } from '@/lib/api';
 import { saveSession } from '@/lib/auth';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +23,11 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const result = await api<any>('/auth/login', {
+      const result = await api<{
+        tokens: { accessToken: string; refreshToken: string };
+        tenant: { id: string; slug: string; businessName: string };
+        user: { id: string; email: string; name: string; role: string };
+      }>('/auth/login', {
         method: 'POST',
         json: { email, password },
         auth: false,
@@ -36,53 +42,72 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md px-6 py-16">
-      <h1 className="text-3xl font-bold text-rose-700">Entrar</h1>
-      <p className="mt-2 text-rose-900/70">Accede a tu panel de manicuri.</p>
+    <div>
+      <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-4 md:px-6">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="grid h-9 w-9 place-items-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white shadow-md">
+            <Sparkles size={18} />
+          </span>
+          <span className="font-bold">Manicuba</span>
+        </Link>
+        <ThemeToggle />
+      </header>
 
-      {justReset && (
-        <p className="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800">
-          Contrasena actualizada. Ya puedes entrar.
-        </p>
-      )}
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-20">
+        <div className="animate-fade-up">
+          <h1 className="font-display text-4xl font-bold tracking-tight">
+            <span className="heading-grad">Bienvenida</span> de vuelta
+          </h1>
+          <p className="mt-2 text-fg-soft">Entra a tu panel y sigue brillando.</p>
 
-      <form onSubmit={onSubmit} className="card mt-8 space-y-4">
-        <div>
-          <label className="label">Correo</label>
-          <input
-            className="input"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          {justReset && (
+            <div className="mt-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+              Contrasena actualizada. Ya puedes entrar.
+            </div>
+          )}
+
+          <form onSubmit={onSubmit} className="card mt-6 space-y-4">
+            <div>
+              <label className="label">Correo</label>
+              <input
+                className="input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="label">Contrasena</label>
+              <input
+                className="input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
+                {error}
+              </p>
+            )}
+            <button type="submit" className="btn-primary w-full justify-center" disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
+              {!loading && <ArrowRight size={16} />}
+            </button>
+
+            <div className="flex items-center justify-between text-sm text-fg-muted">
+              <Link href="/olvide-password" className="hover:text-primary">
+                Olvide mi contrasena
+              </Link>
+              <Link href="/registro" className="font-semibold text-primary">
+                Crear cuenta
+              </Link>
+            </div>
+          </form>
         </div>
-        <div>
-          <label className="label">Contrasena</label>
-          <input
-            className="input"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" className="btn-primary w-full" disabled={loading}>
-          {loading ? 'Entrando...' : 'Entrar'}
-        </button>
-        <p className="text-sm text-rose-900/70">
-          No tienes cuenta?{' '}
-          <Link href="/registro" className="font-semibold text-rose-600">
-            Crear cuenta
-          </Link>
-        </p>
-        <p className="text-sm text-rose-900/70">
-          <Link href="/olvide-password" className="text-rose-600">
-            Olvide mi contrasena
-          </Link>
-        </p>
-      </form>
-    </main>
+      </main>
+    </div>
   );
 }
