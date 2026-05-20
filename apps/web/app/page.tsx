@@ -163,6 +163,61 @@ function Feature({
   );
 }
 
+function PreviewCard() {
+  return (
+    <div className="relative">
+      {/* Glow detras */}
+      <div className="absolute -inset-6 -z-10 rounded-[40px] bg-gradient-to-br from-primary/30 via-accent/20 to-transparent blur-2xl" />
+
+      <div className="card overflow-hidden p-0">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+          <span className="ml-2 text-xs text-fg-muted">manicuba.app/m/yamila-nails</span>
+        </div>
+
+        <div className="space-y-4 bg-bg-soft p-5">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white">
+              <Sparkles size={16} />
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold">Maria Lopez</p>
+              <p className="text-xs text-fg-muted">Quiere disenos en pastel · 3 fotos</p>
+            </div>
+            <span className="ml-auto rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+              Nueva
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <div className="aspect-square rounded-xl bg-gradient-to-br from-rose-200 to-pink-300" />
+            <div className="aspect-square rounded-xl bg-gradient-to-br from-fuchsia-200 to-violet-300" />
+            <div className="aspect-square rounded-xl bg-gradient-to-br from-amber-200 to-rose-200" />
+          </div>
+
+          <div className="rounded-2xl border border-border bg-surface p-3">
+            <p className="text-xs uppercase text-fg-muted">Cotizacion</p>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="font-display text-2xl font-bold">3500</span>
+              <span className="text-sm text-fg-soft">CUP · 2h</span>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <span className="flex-1 rounded-xl bg-primary px-3 py-1.5 text-center text-xs font-semibold text-white">
+                WhatsApp
+              </span>
+              <span className="flex-1 rounded-xl border border-border bg-surface px-3 py-1.5 text-center text-xs text-fg">
+                Telegram
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PiggyBankIcon() {
   return (
     <svg

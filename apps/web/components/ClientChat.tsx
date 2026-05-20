@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Send } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import { publicApi } from '@/lib/api';
 import { connectSocket } from '@/lib/socket';
@@ -130,8 +131,13 @@ export function ClientChat({ threadToken }: { threadToken: string }) {
           onChange={(e) => setBody(e.target.value)}
           disabled={sending}
         />
-        <button type="submit" className="btn-primary" disabled={sending || !body.trim()}>
-          Enviar
+        <button
+          type="submit"
+          className="btn-primary px-4"
+          disabled={sending || !body.trim()}
+          aria-label="Enviar mensaje"
+        >
+          <Send size={16} />
         </button>
       </form>
     </div>

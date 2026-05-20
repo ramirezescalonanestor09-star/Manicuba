@@ -15,6 +15,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { ImagePipeline } from '../uploads/image.pipeline';
 import { AvailabilityService } from '../availability/availability.service';
 import { RemindersService } from '../jobs/reminders.service';
+import { computeAppointmentSlot } from './slot-calculator';
 
 @Injectable()
 export class RequestsService {
@@ -218,7 +219,7 @@ export class RequestsService {
   async decision(token: string, decision: 'ACCEPT' | 'REJECT') {
     const request = await this.prisma.serviceRequest.findUnique({
       where: { publicToken: token },
-      include: { quote: true },
+      include: { quote: true, service: { select: { durationMin: true } } },
     });
     if (!request || !request.quote) throw new NotFoundException();
 
@@ -236,8 +237,10 @@ export class RequestsService {
       return { status: 'REJECTED' };
     }
 
-    const start = request.requestedSlot ?? new Date(Date.now() + 24 * 3600 * 1000);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    const { start, end } = computeAppointmentSlot({
+      requestedSlot: request.requestedSlot,
+      serviceDurationMin: request.service?.durationMin ?? null,
+    });
 
     await this.availability.assertSlotFree(request.tenantId, start, end);
 
