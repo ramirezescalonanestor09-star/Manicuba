@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: manicuba-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: manicuba
+      POSTGRES_PASSWORD: manicuba
+      POSTGRES_DB: manicuba
+    # 5433 en el host para no chocar con un Postgres local en 5432.
+    # El contenedor sigue escuchando en 5432 internamente.
+    ports:
+      - "5433:5432"
+    volumes:
+      - manicuba_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U manicuba"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: manicuba-redis
+    restart: unless-stopped
+    # 6380 en el host por la misma razon.
+    ports:
+      - "6380:6379"
+    volumes:
+      - manicuba_redis_data:/data
+
+volumes:
+  manicuba_pg_data:
+  manicuba_redis_data:

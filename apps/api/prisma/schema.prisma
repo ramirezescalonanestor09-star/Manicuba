@@ -1,0 +1,424 @@
+// Manicuba — Prisma schema
+// Multi-tenant SaaS para manicuris en Cuba.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  CUP
+  MLC
+  USD
+}
+
+enum UserRole {
+  OWNER
+  STAFF
+}
+
+enum RequestStatus {
+  NEW
+  REVIEWING
+  QUOTED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  TELEGRAM
+  INAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum AvailabilityExceptionType {
+  BLOCKED
+  EXTRA
+}
+
+enum MessageSenderType {
+  CLIENT
+  MANICURI
+  SYSTEM
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  CARD
+  MLC_CARD
+  ZELLE
+  OTHER
+}
+
+model Tenant {
+  id                 String    @id @default(cuid())
+  slug               String    @unique
+  businessName       String
+  ownerName          String
+  phoneE164          String
+  email              String    @unique
+  defaultCurrency    Currency  @default(CUP)
+  timezone           String    @default("America/Havana")
+  locale             String    @default("es-CU")
+  bio                String?
+  coverImageKey      String?
+  loyaltyEvery       Int       @default(10)
+  loyaltyDiscount    Int       @default(10)
+  ratesCupPerUsd     Float?
+  ratesMlcPerUsd     Float?
+  availableNowUntil  DateTime?
+  availableNowNote   String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  users                  User[]
+  clients                Client[]
+  services               Service[]
+  requests               ServiceRequest[]
+  appointments           Appointment[]
+  availabilityWindows    AvailabilityWindow[]
+  availabilityExceptions AvailabilityException[]
+  threads                MessageThread[]
+  notifications          Notification[]
+  galleryItems           GalleryItem[]
+  auditLogs              AuditLog[]
+  expenses               Expense[]
+  quoteTemplates         QuoteTemplate[]
+}
+
+model User {
+  id                       String    @id @default(cuid())
+  tenantId                 String
+  email                    String    @unique
+  phoneE164                String?
+  passwordHash             String
+  name                     String
+  role                     UserRole  @default(OWNER)
+  active                   Boolean   @default(true)
+  emailVerifiedAt          DateTime?
+  passwordResetTokenHash   String?   @unique
+  passwordResetExpiresAt   DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+
+  @@index([tenantId])
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Client {
+  id            String   @id @default(cuid())
+  tenantId      String
+  fullName      String
+  phoneE164     String
+  email         String?
+  notesPrivate  String?
+  allergies     String?
+  preferences   String?
+  loyaltyPoints Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  requests     ServiceRequest[]
+  appointments Appointment[]
+  threads      MessageThread[]
+
+  @@unique([tenantId, phoneE164])
+  @@index([tenantId])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  durationMin Int
+  priceCUP    Float?
+  priceMLC    Float?
+  priceUSD    Float?
+  active      Boolean  @default(true)
+  coverImage  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  requests     ServiceRequest[]
+  appointments Appointment[]
+
+  @@index([tenantId])
+}
+
+model ServiceRequest {
+  id                String        @id @default(cuid())
+  tenantId          String
+  clientId          String
+  serviceId         String?
+  publicToken       String        @unique
+  description       String
+  allergiesNote     String?
+  budgetEstimate    Float?
+  preferredCurrency Currency?
+  preferredChannel  NotificationChannel?
+  requestedSlot     DateTime?
+  status            RequestStatus @default(NEW)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client   Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service  Service?       @relation(fields: [serviceId], references: [id])
+  images   RequestImage[]
+  quote    Quote?
+  thread   MessageThread?
+  appointment Appointment?
+
+  @@index([tenantId, status])
+  @@index([clientId])
+}
+
+model RequestImage {
+  id         String   @id @default(cuid())
+  requestId  String
+  storageKey String
+  mime       String
+  width      Int?
+  height     Int?
+  size       Int?
+  annotation String?
+  createdAt  DateTime @default(now())
+
+  request ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+}
+
+model Quote {
+  id          String    @id @default(cuid())
+  requestId   String    @unique
+  amount      Float
+  currency    Currency
+  message     String?
+  validUntil  DateTime?
+  sentAt      DateTime  @default(now())
+  acceptedAt  DateTime?
+  rejectedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  request ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+}
+
+model QuoteTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model Appointment {
+  id            String            @id @default(cuid())
+  tenantId      String
+  clientId      String
+  serviceId     String?
+  requestId     String?           @unique
+  startAt       DateTime
+  endAt         DateTime
+  status        AppointmentStatus @default(PENDING)
+  priceFinal    Float?
+  currency      Currency?
+  amountPaid    Float?
+  tipAmount     Float?
+  paymentMethod PaymentMethod?
+  paidAt        DateTime?
+  notes         String?
+  reminderJobId String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client  Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service Service?        @relation(fields: [serviceId], references: [id])
+  request ServiceRequest? @relation(fields: [requestId], references: [id])
+
+  @@index([tenantId, startAt])
+  @@index([clientId])
+}
+
+model Expense {
+  id          String    @id @default(cuid())
+  tenantId    String
+  amount      Float
+  currency    Currency
+  category    String?
+  description String?
+  date        DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, date])
+}
+
+model AvailabilityWindow {
+  id        String @id @default(cuid())
+  tenantId  String
+  dayOfWeek Int
+  startTime String
+  endTime   String
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model AvailabilityException {
+  id        String                    @id @default(cuid())
+  tenantId  String
+  date      DateTime                  @db.Date
+  startTime String?
+  endTime   String?
+  type      AvailabilityExceptionType
+  reason    String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, date])
+}
+
+model MessageThread {
+  id            String    @id @default(cuid())
+  tenantId      String
+  clientId      String
+  requestId     String?   @unique
+  publicToken   String    @unique
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client   Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  request  ServiceRequest? @relation(fields: [requestId], references: [id])
+  messages Message[]
+
+  @@index([tenantId])
+}
+
+model Message {
+  id          String              @id @default(cuid())
+  threadId    String
+  fromType    MessageSenderType
+  body        String
+  readAt      DateTime?
+  createdAt   DateTime            @default(now())
+
+  thread      MessageThread       @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  attachments MessageAttachment[]
+
+  @@index([threadId, createdAt])
+}
+
+model MessageAttachment {
+  id         String   @id @default(cuid())
+  messageId  String
+  storageKey String
+  mime       String
+  width      Int?
+  height     Int?
+  size       Int?
+  createdAt  DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  tenantId  String
+  channel   NotificationChannel
+  to        String
+  payload   Json
+  status    NotificationStatus  @default(PENDING)
+  error     String?
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+}
+
+model GalleryItem {
+  id         String   @id @default(cuid())
+  tenantId   String
+  storageKey String
+  caption    String?
+  tags       String[] @default([])
+  isPublic   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id])
+
+  @@index([tenantId, createdAt])
+}
